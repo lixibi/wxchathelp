@@ -9,6 +9,16 @@ const MessageHandler = {
 
     // 加载状态（防止重复请求）
     isLoading: false,
+    isLoadingMore: false,
+
+    // 分页状态
+    hasMoreMessages: true, // 是否还有更多历史消息
+    totalLoadedMessages: 0, // 已加载的消息总数
+
+    // 无限滚动相关
+    scrollListener: null, // 滚动监听器
+    scrollDebounceTimer: null, // 防抖定时器
+    isScrollListenerActive: false, // 滚动监听器是否激活
 
     // 初始化消息处理
     init() {
@@ -20,6 +30,9 @@ const MessageHandler = {
         // 直接加载消息，不显示加载状态
         this.loadMessages(true); // 初始加载时强制滚动
         this.syncDevice();
+
+        // 初始化无限滚动
+        this.initInfiniteScroll();
 
         // 如果实时连接失败，启用轮询
         setTimeout(() => {
@@ -96,8 +109,15 @@ const MessageHandler = {
 
                 UI.renderMessages(messages, shouldScroll);
 
-                // 更新缓存
+                // 更新缓存和分页状态
                 this.lastMessages = [...messages];
+                this.totalLoadedMessages = messages.length;
+
+                // 判断是否还有更多消息
+                this.hasMoreMessages = messages.length >= CONFIG.UI.MESSAGE_LOAD_LIMIT;
+
+                // 启动或停止无限滚动监听
+                this.updateInfiniteScrollState();
             }
 
         } catch (error) {
@@ -113,6 +133,143 @@ const MessageHandler = {
         } finally {
             this.isLoading = false;
         }
+    },
+
+    // 初始化无限滚动
+    initInfiniteScroll() {
+        const messageContainer = UI.getMessageContainer();
+        if (!messageContainer) {
+            console.warn('消息容器未找到，无法初始化无限滚动');
+            return;
+        }
+
+        // 创建滚动监听器
+        this.scrollListener = this.createScrollListener();
+
+        // 初始状态检查
+        this.updateInfiniteScrollState();
+    },
+
+    // 创建滚动监听器（带防抖）
+    createScrollListener() {
+        return (event) => {
+            // 清除之前的防抖定时器
+            if (this.scrollDebounceTimer) {
+                clearTimeout(this.scrollDebounceTimer);
+            }
+
+            // 设置防抖延迟
+            this.scrollDebounceTimer = setTimeout(() => {
+                this.handleScroll(event);
+            }, CONFIG.UI.SCROLL_DEBOUNCE_DELAY);
+        };
+    },
+
+    // 处理滚动事件
+    async handleScroll(event) {
+        // 如果正在加载或没有更多消息，直接返回
+        if (this.isLoadingMore || !this.hasMoreMessages) {
+            return;
+        }
+
+        const container = event.target;
+        const scrollTop = container.scrollTop;
+        const threshold = CONFIG.UI.INFINITE_SCROLL_THRESHOLD;
+
+        // 检查是否接近顶部
+        if (scrollTop <= threshold) {
+            await this.loadMoreMessagesInfinite();
+        }
+    },
+
+    // 无限滚动加载更多消息
+    async loadMoreMessagesInfinite() {
+        // 防止重复请求
+        if (this.isLoadingMore || !this.hasMoreMessages) {
+            return;
+        }
+
+        this.isLoadingMore = true;
+        UI.showTopLoadingIndicator(true); // 显示顶部加载指示器
+
+        try {
+            // 获取当前滚动位置
+            const scrollContainer = UI.getMessageContainer();
+            const oldScrollHeight = scrollContainer.scrollHeight;
+            const oldScrollTop = scrollContainer.scrollTop;
+
+            // 加载更多消息
+            const moreMessages = await API.getMessages(
+                CONFIG.UI.LOAD_MORE_BATCH_SIZE,
+                this.totalLoadedMessages
+            );
+
+            if (moreMessages && moreMessages.length > 0) {
+                // 合并消息（新加载的历史消息在前面）
+                const allMessages = [...moreMessages, ...this.lastMessages];
+
+                // 更新UI（不滚动）
+                UI.renderMessages(allMessages, false);
+
+                // 更新缓存和状态
+                this.lastMessages = allMessages;
+                this.totalLoadedMessages += moreMessages.length;
+
+                // 判断是否还有更多消息
+                this.hasMoreMessages = moreMessages.length >= CONFIG.UI.LOAD_MORE_BATCH_SIZE;
+
+                // 精确恢复滚动位置
+                requestAnimationFrame(() => {
+                    const newScrollHeight = scrollContainer.scrollHeight;
+                    const scrollDiff = newScrollHeight - oldScrollHeight;
+                    scrollContainer.scrollTop = oldScrollTop + scrollDiff;
+                });
+            } else {
+                // 没有更多消息了
+                this.hasMoreMessages = false;
+            }
+
+            // 更新无限滚动状态
+            this.updateInfiniteScrollState();
+
+        } catch (error) {
+            console.error('无限滚动加载失败:', error);
+            // 静默处理错误，不显示错误提示
+        } finally {
+            this.isLoadingMore = false;
+            UI.showTopLoadingIndicator(false); // 隐藏加载指示器
+        }
+    },
+
+    // 更新无限滚动状态
+    updateInfiniteScrollState() {
+        const messageContainer = UI.getMessageContainer();
+        if (!messageContainer) return;
+
+        if (this.hasMoreMessages && !this.isScrollListenerActive) {
+            // 启动滚动监听
+            messageContainer.addEventListener('scroll', this.scrollListener, { passive: true });
+            this.isScrollListenerActive = true;
+        } else if (!this.hasMoreMessages && this.isScrollListenerActive) {
+            // 停止滚动监听
+            messageContainer.removeEventListener('scroll', this.scrollListener);
+            this.isScrollListenerActive = false;
+        }
+    },
+
+    // 清理无限滚动
+    cleanupInfiniteScroll() {
+        const messageContainer = UI.getMessageContainer();
+        if (messageContainer && this.scrollListener) {
+            messageContainer.removeEventListener('scroll', this.scrollListener);
+        }
+
+        if (this.scrollDebounceTimer) {
+            clearTimeout(this.scrollDebounceTimer);
+            this.scrollDebounceTimer = null;
+        }
+
+        this.isScrollListenerActive = false;
     },
 
     // 检测消息变化
@@ -423,7 +580,8 @@ const MessageHandler = {
         } else {
             UI.setConnectionStatus('disconnected');
             this.stopAutoRefresh();
-            UI.showError('网络连接已断开');
+            // 网络断开通知已禁用，避免移动端弹窗遮挡输入框
+            // UI.showError('网络连接已断开');
         }
     },
     
@@ -462,7 +620,8 @@ window.addEventListener('offline', () => {
     MessageHandler.handleOnlineStatusChange();
 });
 
-// 页面卸载时清理定时器
+// 页面卸载时清理定时器和无限滚动
 window.addEventListener('beforeunload', () => {
     MessageHandler.stopAutoRefresh();
+    MessageHandler.cleanupInfiniteScroll();
 });

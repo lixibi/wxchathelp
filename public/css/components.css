@@ -59,6 +59,11 @@
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
     backdrop-filter: blur(20px);
+    /* 允许消息内容被选择 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 /* 普通文本消息保持紧凑 - 高优先级 */
@@ -108,6 +113,11 @@
     color: #999;
     margin-bottom: 0.625rem;
     font-weight: 500;
+    /* 允许消息元信息被选择 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 .message-time {
@@ -118,6 +128,11 @@
     backdrop-filter: blur(8px);
     font-weight: 400;
     letter-spacing: 0.01em;
+    /* 允许时间文本被选择 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 .message.own .message-time {
@@ -146,11 +161,26 @@
 .text-message {
     white-space: pre-wrap;
     position: relative;
+    /* 允许文本选择和复制 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+    /* 确保文本可以被选中 */
+    cursor: text;
 }
 
 /* Markdown渲染样式 */
 .text-message.markdown-rendered {
     white-space: normal;
+    /* 确保Markdown渲染的内容也可以被选择 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+    cursor: text;
 }
 
 .text-message.markdown-rendered h1,
@@ -279,8 +309,13 @@
     transition: all 0.2s ease;
     opacity: 0.6;
     z-index: 1;
-    /* 确保按钮不影响文本布局 */
+    /* 确保按钮不影响文本布局和选择 */
     pointer-events: auto;
+    /* 按钮本身不可选择 */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .markdown-toggle:hover {
@@ -300,6 +335,11 @@
 /* 文件消息 */
 .file-message {
     min-width: 220px;
+    /* 允许文件名等文本被选择 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 .file-info {
@@ -324,6 +364,11 @@
 .file-details {
     flex: 1;
     min-width: 0;
+    /* 允许文件详情文本被选择 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 .file-name {
@@ -332,12 +377,24 @@
     word-break: break-all;
     font-size: 0.95rem;
     line-height: 1.4;
+    /* 允许文件名被选择 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    cursor: text;
 }
 
 .file-size {
     font-size: 0.85rem;
     opacity: 0.75;
     font-weight: 400;
+    /* 允许文件大小被选择 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    cursor: text;
 }
 
 .download-btn {
@@ -465,6 +522,43 @@
 
 .image-error .retry-btn:hover {
     background: #06a552;
+}
+
+/* 顶部加载指示器 - 无限滚动 */
+.top-loading-indicator {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem 0;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, rgba(7, 193, 96, 0.05) 0%, rgba(26, 173, 25, 0.05) 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(7, 193, 96, 0.1);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.top-loading-indicator.fade-in {
+    opacity: 1;
+}
+
+.top-loading-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #07c160;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.top-loading-spinner {
+    animation: spin 1s linear infinite;
+    font-size: 1rem;
+}
+
+.top-loading-text {
+    letter-spacing: 0.01em;
 }
 
 /* 文件上传组件 - 简化版 */
@@ -666,29 +760,7 @@
 
 /* PWA相关样式 */
 
-/* PWA安装按钮 */
-.pwa-install-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #07c160 0%, #1aad19 50%, #0ea85c 100%);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 4px 20px rgba(7, 193, 96, 0.3);
-    z-index: 1000;
-    transition: all 0.3s ease;
-    display: none;
-}
-
-.pwa-install-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(7, 193, 96, 0.4);
-}
+/* PWA安装按钮（已禁用） */
 
 /* PWA安装横幅 */
 .pwa-install-banner {
@@ -834,6 +906,12 @@
     background: rgba(16, 185, 129, 0.1);
     color: #10b981;
     border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.connection-status.connecting {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .connection-status.offline {

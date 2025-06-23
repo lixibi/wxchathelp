@@ -194,7 +194,7 @@ api.get('/messages', async (c) => {
         f.r2_key
       FROM messages m
       LEFT JOIN files f ON m.file_id = f.id
-      ORDER BY m.timestamp ASC
+      ORDER BY m.timestamp DESC
       LIMIT ? OFFSET ?
     `)
 

@@ -258,18 +258,18 @@ const Utils = {
         return element;
     },
     
-    // 显示通知
+    // 显示通知 - 已禁用，避免移动端弹窗遮挡输入框
     showNotification(message, type = 'info') {
-        // 简单的通知实现，可以后续扩展
+        // 只在控制台输出，不显示任何弹窗或通知
         console.log(`[${type.toUpperCase()}] ${message}`);
-        
-        // 如果浏览器支持通知API
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('微信文件传输助手', {
-                body: message,
-                icon: '/favicon.ico'
-            });
-        }
+
+        // 所有通知功能已禁用，避免遮挡输入框
+        // if ('Notification' in window && Notification.permission === 'granted') {
+        //     new Notification('微信文件传输助手', {
+        //         body: message,
+        //         icon: '/favicon.ico'
+        //     });
+        // }
     },
     
     // 请求通知权限

@@ -158,8 +158,15 @@ body.keyboard-open .message-list {
         -webkit-touch-callout: none;
     }
     
-    /* 但保留输入框的选择功能 */
-    input, textarea {
+    /* 但保留输入框和消息文本的选择功能 */
+    input, textarea, .text-message, .message-content {
+        -webkit-touch-callout: default;
+        -webkit-user-select: text;
+        user-select: text;
+    }
+
+    /* 确保消息文本在iOS上可以被选择 */
+    .text-message, .text-message.markdown-rendered {
         -webkit-touch-callout: default;
         -webkit-user-select: text;
         user-select: text;

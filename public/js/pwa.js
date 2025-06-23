@@ -133,8 +133,7 @@ class PWAManager {
             // 保存事件，但不阻止默认行为（让浏览器显示原生提示）
             this.deferredPrompt = e;
 
-            // 可选：显示我们的自定义安装按钮
-            this.showInstallButton();
+            // 不显示自定义安装按钮，只保存事件供/pwa命令使用
         });
         
         // 监听应用安装事件
@@ -142,7 +141,8 @@ class PWAManager {
             console.log('🎉 应用已安装');
             this.isInstalled = true;
             this.hideInstallButton();
-            Utils.showNotification('应用已成功安装到桌面！', 'success');
+            // 安装成功通知已禁用，避免移动端弹窗遮挡输入框
+            // Utils.showNotification('应用已成功安装到桌面！', 'success');
         });
         
         // 监听网络状态变化
@@ -164,11 +164,12 @@ class PWAManager {
             statusElement.textContent = this.isOnline ? '已连接' : '离线模式';
             statusElement.className = `connection-status ${this.isOnline ? 'online' : 'offline'}`;
         }
-        
-        // 显示网络状态通知
-        const message = this.isOnline ? '网络已连接' : '已切换到离线模式';
-        const type = this.isOnline ? 'success' : 'warning';
-        Utils.showNotification(message, type);
+
+        // 网络状态通知已禁用，避免移动端弹窗遮挡输入框
+        // if (this.isOnline) {
+        //     Utils.showNotification('网络已连接', 'success');
+        // }
+        // 离线状态的通知由UI.setConnectionStatus处理，避免重复
     }
     
     // 检查安装状态
@@ -184,35 +185,14 @@ class PWAManager {
     
     // 设置安装提示
     setupInstallPrompt() {
-        // 如果已安装，不显示安装按钮
-        if (this.isInstalled) {
-            return;
-        }
-        
-        // 延迟显示安装提示（避免打扰用户）
-        setTimeout(() => {
-            if (this.deferredPrompt && !this.isInstalled) {
-                this.showInstallBanner();
-            }
-        }, 30000); // 30秒后显示
+        // 不自动显示任何安装提示，只通过/pwa命令手动触发
+        return;
     }
     
-    // 显示安装按钮
+    // 显示安装按钮（已禁用）
     showInstallButton() {
-        let installBtn = document.getElementById('pwa-install-btn');
-        
-        if (!installBtn) {
-            installBtn = document.createElement('button');
-            installBtn.id = 'pwa-install-btn';
-            installBtn.className = 'pwa-install-button';
-            installBtn.innerHTML = '📱 安装应用';
-            installBtn.onclick = () => this.promptInstall();
-            
-            // 添加到页面右下角
-            document.body.appendChild(installBtn);
-        }
-        
-        installBtn.style.display = 'block';
+        // 不显示悬浮安装按钮
+        return;
     }
     
     // 隐藏安装按钮
@@ -252,31 +232,33 @@ class PWAManager {
     // 提示安装
     async promptInstall() {
         if (!this.deferredPrompt) {
-            Utils.showNotification('安装提示不可用，请使用浏览器菜单安装', 'warning');
+            // 安装提示通知已禁用，避免移动端弹窗遮挡输入框
+            console.log('安装提示不可用，请使用浏览器菜单安装');
             return;
         }
-        
+
         try {
             // 显示安装提示
             this.deferredPrompt.prompt();
-            
+
             // 等待用户响应
             const { outcome } = await this.deferredPrompt.userChoice;
-            
+
             if (outcome === 'accepted') {
                 console.log('✅ 用户接受安装');
             } else {
                 console.log('❌ 用户拒绝安装');
             }
-            
+
             // 清除提示
             this.deferredPrompt = null;
             this.hideInstallButton();
             this.dismissInstallBanner();
-            
+
         } catch (error) {
             console.error('安装提示失败:', error);
-            Utils.showNotification('安装失败，请重试', 'error');
+            // 安装失败通知已禁用，避免移动端弹窗遮挡输入框
+            console.error('安装失败，请重试');
         }
     }
     
@@ -324,19 +306,21 @@ class PWAManager {
     // 清理缓存
     async clearCache() {
         if (!('caches' in window)) {
-            Utils.showNotification('浏览器不支持缓存API', 'error');
+            // 缓存API不支持通知已禁用，避免移动端弹窗遮挡输入框
+            console.error('浏览器不支持缓存API');
             return;
         }
-        
+
         try {
             const cacheNames = await caches.keys();
             await Promise.all(cacheNames.map(name => caches.delete(name)));
-            
-            Utils.showNotification('缓存已清理', 'success');
+
+            // 缓存清理成功通知已禁用，避免移动端弹窗遮挡输入框
             console.log('🗑️ PWA缓存已清理');
         } catch (error) {
             console.error('清理缓存失败:', error);
-            Utils.showNotification('清理缓存失败', 'error');
+            // 缓存清理失败通知已禁用，避免移动端弹窗遮挡输入框
+            console.error('清理缓存失败');
         }
     }
     

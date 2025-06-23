@@ -360,7 +360,11 @@ const FileUpload = {
         // 显示结果
         if (successCount > 0) {
             UI.showSuccess(`成功上传 ${successCount} 个文件`);
-            MessageHandler.loadMessages(true); // 强制滚动到底部
+
+            // 添加延迟确保数据库写入完成
+            setTimeout(async () => {
+                await MessageHandler.loadMessages(true); // 强制滚动到底部
+            }, 500);
         }
 
         if (failCount > 0) {

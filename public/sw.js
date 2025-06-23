@@ -165,19 +165,21 @@ async function handleFetch(request) {
 async function networkFirst(request) {
   try {
     const networkResponse = await fetch(request);
-    
-    // 如果网络请求成功，缓存响应
-    if (networkResponse.ok) {
+
+    // 只缓存GET请求的成功响应
+    if (networkResponse.ok && request.method === 'GET') {
       const cache = await caches.open(DYNAMIC_CACHE_NAME);
       cache.put(request, networkResponse.clone());
     }
-    
+
     return networkResponse;
   } catch (error) {
-    // 网络失败，尝试从缓存获取
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
+    // 网络失败，尝试从缓存获取（只对GET请求）
+    if (request.method === 'GET') {
+      const cachedResponse = await caches.match(request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
     }
     throw error;
   }
@@ -185,27 +187,37 @@ async function networkFirst(request) {
 
 // 缓存优先策略
 async function cacheFirst(request) {
+  // 只对GET请求使用缓存策略
+  if (request.method !== 'GET') {
+    return fetch(request);
+  }
+
   const cachedResponse = await caches.match(request);
-  
+
   if (cachedResponse) {
     // 后台更新缓存
     updateCache(request);
     return cachedResponse;
   }
-  
+
   // 缓存中没有，从网络获取
   const networkResponse = await fetch(request);
-  
+
   if (networkResponse.ok) {
     const cache = await caches.open(DYNAMIC_CACHE_NAME);
     cache.put(request, networkResponse.clone());
   }
-  
+
   return networkResponse;
 }
 
 // 后台更新缓存
 async function updateCache(request) {
+  // 只更新GET请求的缓存
+  if (request.method !== 'GET') {
+    return;
+  }
+
   try {
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {

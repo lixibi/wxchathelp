@@ -29,7 +29,10 @@ const CONFIG = {
         AUTO_REFRESH_INTERVAL: 3000, // 3秒自动刷新（更快响应）
         MESSAGE_LOAD_LIMIT: 50, // 每次加载消息数量
         ANIMATION_DURATION: 100, // 动画持续时间(ms)（更快动画）
-        TYPING_INDICATOR_DELAY: 1000 // 输入指示器延迟
+        TYPING_INDICATOR_DELAY: 1000, // 输入指示器延迟
+        LOAD_MORE_BATCH_SIZE: 30, // 每次无限滚动加载的消息数量
+        INFINITE_SCROLL_THRESHOLD: 80, // 距离顶部多少px时触发无限滚动
+        SCROLL_DEBOUNCE_DELAY: 100 // 滚动事件防抖延迟(ms)
     },
     
     // 设备配置

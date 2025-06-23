@@ -29,8 +29,8 @@ class WeChatApp {
             // 初始化设备ID
             this.deviceId = Utils.getDeviceId();
 
-            // 请求通知权限
-            await Utils.requestNotificationPermission();
+            // 请求通知权限 - 已禁用，避免移动端弹窗遮挡输入框
+            // await Utils.requestNotificationPermission();
 
             // 初始化各个模块
             UI.init();
@@ -136,16 +136,17 @@ class WeChatApp {
         // 浏览器兼容性检查通过
     }
 
-    // 显示欢迎消息
+    // 显示欢迎消息 - 已禁用，避免移动端弹窗遮挡输入框
     showWelcomeMessage() {
         const isFirstTime = !localStorage.getItem('hasVisited');
-        
+
         if (isFirstTime) {
             localStorage.setItem('hasVisited', 'true');
-            
-            setTimeout(() => {
-                Utils.showNotification('欢迎使用微信文件传输助手！', 'info');
-            }, 1000);
+
+            // 欢迎通知已禁用，避免遮挡输入框
+            // setTimeout(() => {
+            //     Utils.showNotification('欢迎使用微信文件传输助手！', 'info');
+            // }, 1000);
         }
     }
 
@@ -208,16 +209,16 @@ document.addEventListener('DOMContentLoaded', () => {
     app.init();
 });
 
-// 全局错误处理
+// 全局错误处理 - 通知已禁用，避免移动端弹窗遮挡输入框
 window.addEventListener('error', (event) => {
     console.error('全局错误:', event.error);
-    Utils.showNotification('应用发生错误，请刷新页面重试', 'error');
+    // Utils.showNotification('应用发生错误，请刷新页面重试', 'error');
 });
 
-// 未处理的Promise错误
+// 未处理的Promise错误 - 通知已禁用，避免移动端弹窗遮挡输入框
 window.addEventListener('unhandledrejection', (event) => {
     console.error('未处理的Promise错误:', event.reason);
-    Utils.showNotification('网络请求失败，请检查网络连接', 'error');
+    // Utils.showNotification('网络请求失败，请检查网络连接', 'error');
 });
 
 // 页面卸载时清理资源

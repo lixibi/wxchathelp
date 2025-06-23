@@ -212,9 +212,9 @@ const API = {
         } catch (error) {
             console.error('文件下载失败:', error);
 
-            // 显示用户友好的错误信息
+            // 下载失败通知已禁用，避免移动端弹窗遮挡输入框
             if (error.message.includes('401')) {
-                Utils.showNotification('下载失败：请重新登录', 'error');
+                console.error('下载失败：请重新登录');
                 // 可以选择自动跳转到登录页
                 if (typeof Auth !== 'undefined' && Auth.logout) {
                     setTimeout(() => {
@@ -223,7 +223,7 @@ const API = {
                     }, 2000);
                 }
             } else {
-                Utils.showNotification(`下载失败：${error.message}`, 'error');
+                console.error(`下载失败：${error.message}`);
             }
 
             return false;
