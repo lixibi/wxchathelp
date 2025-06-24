@@ -46,7 +46,8 @@ class RealtimeManager {
                     if (data.newMessages > 0) {
                         // 有新消息，触发刷新
                         this.emit('newMessages', data);
-                        MessageHandler.loadMessages();
+                        // 立即加载消息，强制滚动到底部
+                        MessageHandler.loadMessages(true);
                     }
                 } catch (error) {
                     // 静默处理解析错误
@@ -145,7 +146,8 @@ class RealtimeManager {
 
             if (data.success && data.hasNewMessages) {
                 this.emit('newMessages', { newMessages: data.newMessageCount });
-                MessageHandler.loadMessages();
+                // 立即加载消息，强制滚动到底部
+                MessageHandler.loadMessages(true);
             }
 
             // 设置连接状态

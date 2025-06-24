@@ -66,7 +66,8 @@ const MessageHandler = {
             });
 
             Realtime.on('newMessages', (data) => {
-                this.loadMessages();
+                // 立即加载消息，强制滚动到底部
+                this.loadMessages(true);
             });
         } else {
             this.startAutoRefresh();
@@ -300,6 +301,12 @@ const MessageHandler = {
             return;
         }
 
+        // 检查是否为AI消息
+        if (this.isAIMessage(content)) {
+            await this.handleAIMessage(content);
+            return;
+        }
+
         // 检查是否为清理指令
         if (this.isClearCommand(content)) {
             await this.handleClearCommand();
@@ -328,8 +335,21 @@ const MessageHandler = {
             // 清空输入框
             UI.clearInput();
 
-            // 重新加载消息（发送消息后强制滚动到底部）
+            // 立即重新加载消息（发送消息后强制滚动到底部）
             await this.loadMessages(true);
+
+            // 多次延迟加载，确保消息显示
+            setTimeout(async () => {
+                await this.loadMessages(true);
+            }, 200);
+
+            setTimeout(async () => {
+                await this.loadMessages(true);
+            }, 800);
+
+            setTimeout(async () => {
+                await this.loadMessages(true);
+            }, 1500);
 
             UI.showSuccess(CONFIG.SUCCESS.MESSAGE_SENT);
             UI.setConnectionStatus('connected');
@@ -340,6 +360,53 @@ const MessageHandler = {
             UI.setConnectionStatus('disconnected');
         } finally {
             UI.setSendButtonState(false, false);
+        }
+    },
+
+    // 检查是否为AI消息
+    isAIMessage(content) {
+        // 检查AI模式或消息内容
+        if (window.AIHandler && AIHandler.isAIMode) {
+            return true;
+        }
+
+        // 检查消息是否以AI标识开头
+        const trimmedContent = content.trim();
+        return trimmedContent.startsWith('🤖') ||
+               trimmedContent.toLowerCase().startsWith('ai:') ||
+               trimmedContent.toLowerCase().startsWith('ai ');
+    },
+
+    // 处理AI消息
+    async handleAIMessage(content) {
+
+        // 清空输入框
+        UI.clearInput();
+
+        // 检查AI模块是否可用
+        if (!window.AIHandler) {
+            UI.showError('AI模块未加载，请刷新页面重试');
+            return;
+        }
+
+        // 分发beforeMessageSend事件，让AI处理器接管
+        const event = new CustomEvent('beforeMessageSend', {
+            detail: { content },
+            cancelable: true
+        });
+
+        document.dispatchEvent(event);
+
+        // 如果事件被取消，说明AI处理器已接管
+        if (event.defaultPrevented) {
+            return;
+        }
+
+        // 如果AI处理器没有接管，直接调用AI处理
+        if (typeof AIHandler.handleAIMessage === 'function') {
+            await AIHandler.handleAIMessage(content);
+        } else {
+            UI.showError('AI功能暂时不可用');
         }
     },
 
@@ -522,7 +589,7 @@ const MessageHandler = {
             const success = await API.syncDevice(deviceId, deviceName);
             
             if (success) {
-                console.log('设备同步成功');
+                // 设备同步成功
             }
             
         } catch (error) {

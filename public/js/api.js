@@ -60,11 +60,39 @@ const API = {
     
     // 文件上传请求
     async upload(url, formData) {
-        return this.request(url, {
+        // 对于FormData，不设置Content-Type让浏览器自动设置
+        const defaultOptions = {};
+
+        // 添加认证头
+        const authHeaders = Auth ? Auth.addAuthHeader({}) : {};
+
+        const config = {
+            ...defaultOptions,
             method: 'POST',
-            headers: {}, // 让浏览器自动设置Content-Type
+            headers: {
+                ...authHeaders,
+                // 不设置Content-Type，让浏览器为FormData自动设置multipart/form-data
+            },
             body: formData,
-        });
+        };
+
+        try {
+            const response = await fetch(url, config);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            }
+
+            return response;
+        } catch (error) {
+            console.error('文件上传请求失败:', error);
+            throw error;
+        }
     },
     
     // 获取消息列表
@@ -95,7 +123,7 @@ const API = {
                 content,
                 deviceId
             });
-            
+
             if (response.success) {
                 return response.data;
             } else {
@@ -104,6 +132,25 @@ const API = {
         } catch (error) {
             console.error('发送消息失败:', error);
             throw new Error(CONFIG.ERRORS.MESSAGE_SEND_FAILED);
+        }
+    },
+
+    // 发送AI消息
+    async sendAIMessage(content, deviceId = 'ai-system', type = 'ai_response') {
+        try {
+            const response = await this.post('/api/ai/message', {
+                content,
+                deviceId,
+                type
+            });
+
+            if (response && response.success) {
+                return response.data;
+            } else {
+                throw new Error(response?.error || 'AI消息发送失败');
+            }
+        } catch (error) {
+            throw error;
         }
     },
     

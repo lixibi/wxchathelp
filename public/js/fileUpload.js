@@ -285,27 +285,10 @@ const FileUpload = {
         }
     },
 
-    // 添加键盘快捷键提示
+    // 添加键盘快捷键提示（已禁用）
     addKeyboardHints() {
-        // 检测操作系统
-        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-        const shortcut = isMac ? 'Cmd+V' : 'Ctrl+V';
-
-        // 显示初始提示
-        setTimeout(() => {
-            UI.showKeyboardHint(`💡 提示：可以拖拽文件到窗口或使用 ${shortcut} 粘贴文件`, 5000);
-        }, 2000);
-
-        // 监听焦点事件，在用户交互时显示提示
-        let hintShown = false;
-        document.addEventListener('click', () => {
-            if (!hintShown) {
-                hintShown = true;
-                setTimeout(() => {
-                    UI.showKeyboardHint(`📎 支持拖拽多个文件同时上传`, 3000);
-                }, 1000);
-            }
-        }, { once: true });
+        // 所有文件上传提示已禁用，保持界面简洁
+        return;
     },
 
     // 批量上传文件

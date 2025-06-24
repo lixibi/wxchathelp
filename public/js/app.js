@@ -36,15 +36,66 @@ class WeChatApp {
             UI.init();
             FileUpload.init();
 
+            // 初始化功能组件 - 确保在UI初始化之后
+            if (typeof FunctionMenu !== 'undefined') {
+                FunctionMenu.init();
+                // 将组件暴露到全局
+                window.FunctionMenu = FunctionMenu;
+            }
+
+            if (typeof FunctionButton !== 'undefined') {
+                FunctionButton.init();
+                // 将组件暴露到全局，供UI模块使用
+                window.FunctionButton = FunctionButton;
+            }
+
             // 初始化PWA功能
             if (typeof PWA !== 'undefined') {
                 PWA.init();
+            }
+
+            // 初始化AI模块
+            if (typeof AIUI !== 'undefined') {
+                AIUI.init();
+                window.AIUI = AIUI;
+            }
+
+            if (typeof AIHandler !== 'undefined') {
+                const aiInitSuccess = AIHandler.init();
+                if (aiInitSuccess) {
+                    window.AIHandler = AIHandler;
+                }
+            }
+
+            // 初始化AI图片生成模块
+            if (typeof ImageGenUI !== 'undefined') {
+                ImageGenUI.init();
+                window.ImageGenUI = ImageGenUI;
+            }
+
+            if (typeof ImageGenHandler !== 'undefined') {
+                ImageGenHandler.init();
+                window.ImageGenHandler = ImageGenHandler;
+            }
+
+            // 初始化搜索模块
+            if (typeof SearchUI !== 'undefined') {
+                SearchUI.init();
+                window.SearchUI = SearchUI;
+            }
+
+            if (typeof SearchHandler !== 'undefined') {
+                SearchHandler.init();
+                window.SearchHandler = SearchHandler;
             }
 
             // 设置初始连接状态
             UI.setConnectionStatus(navigator.onLine ? 'connected' : 'disconnected');
 
             MessageHandler.init();
+
+            // 绑定功能菜单事件
+            this.bindFunctionMenuEvents();
 
             // 标记为已初始化
             this.isInitialized = true;
@@ -150,6 +201,57 @@ class WeChatApp {
         }
     }
 
+    // 绑定功能菜单事件
+    bindFunctionMenuEvents() {
+        // 监听功能菜单项点击事件
+        document.addEventListener('functionMenu:itemClick', (e) => {
+            const { action, itemId } = e.detail;
+            this.handleFunctionMenuAction(action, itemId);
+        });
+
+        // 监听清空聊天事件
+        document.addEventListener('functionMenu:clearChat', async () => {
+            try {
+                await MessageHandler.clearAllMessages();
+                UI.showSuccess('聊天记录已清空');
+            } catch (error) {
+                UI.showError('清空聊天记录失败');
+                console.error('清空聊天记录失败:', error);
+            }
+        });
+    }
+
+    // 处理功能菜单动作
+    handleFunctionMenuAction(action, itemId) {
+        // 这里可以根据需要添加更多的功能处理逻辑
+        switch (action) {
+            case 'quickReply':
+                // 快速回复功能已在 FunctionMenu 组件中处理
+                break;
+            case 'emoji':
+                // 表情功能已在 FunctionMenu 组件中处理
+                break;
+            case 'markdown':
+                // Markdown 功能已在 FunctionMenu 组件中处理
+                break;
+            case 'codeSnippet':
+                // 代码片段功能已在 FunctionMenu 组件中处理
+                break;
+            case 'settings':
+                // 可以在这里添加更复杂的设置功能
+                this.showSettings();
+                break;
+            default:
+                break;
+        }
+    }
+
+    // 显示设置界面（占位符）
+    showSettings() {
+        // 这里可以实现设置界面
+        alert('设置功能将在后续版本中实现');
+    }
+
     // 显示初始化错误
     showInitError(error) {
         const errorMessage = `
@@ -240,6 +342,38 @@ window.MessageHandler = MessageHandler;
 if (typeof PWA !== 'undefined') {
     window.PWA = PWA;
 }
+// AI模块全局导出
+if (typeof AIAPI !== 'undefined') {
+    window.AIAPI = AIAPI;
+}
+if (typeof AIUI !== 'undefined') {
+    window.AIUI = AIUI;
+}
+if (typeof AIHandler !== 'undefined') {
+    window.AIHandler = AIHandler;
+}
+
+// AI图片生成模块全局导出
+if (typeof ImageGenAPI !== 'undefined') {
+    window.ImageGenAPI = ImageGenAPI;
+}
+if (typeof ImageGenUI !== 'undefined') {
+    window.ImageGenUI = ImageGenUI;
+}
+if (typeof ImageGenHandler !== 'undefined') {
+    window.ImageGenHandler = ImageGenHandler;
+}
+
+// 搜索模块全局导出
+if (typeof SearchAPI !== 'undefined') {
+    window.SearchAPI = SearchAPI;
+}
+if (typeof SearchUI !== 'undefined') {
+    window.SearchUI = SearchUI;
+}
+if (typeof SearchHandler !== 'undefined') {
+    window.SearchHandler = SearchHandler;
+}
 
 // 开发模式下的调试信息
 if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
@@ -252,6 +386,15 @@ if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
         UI,
         FileUpload,
         MessageHandler,
-        PWA: typeof PWA !== 'undefined' ? PWA : undefined
+        PWA: typeof PWA !== 'undefined' ? PWA : undefined,
+        AIAPI: typeof AIAPI !== 'undefined' ? AIAPI : undefined,
+        AIUI: typeof AIUI !== 'undefined' ? AIUI : undefined,
+        AIHandler: typeof AIHandler !== 'undefined' ? AIHandler : undefined,
+        ImageGenAPI: typeof ImageGenAPI !== 'undefined' ? ImageGenAPI : undefined,
+        ImageGenUI: typeof ImageGenUI !== 'undefined' ? ImageGenUI : undefined,
+        ImageGenHandler: typeof ImageGenHandler !== 'undefined' ? ImageGenHandler : undefined,
+        SearchAPI: typeof SearchAPI !== 'undefined' ? SearchAPI : undefined,
+        SearchUI: typeof SearchUI !== 'undefined' ? SearchUI : undefined,
+        SearchHandler: typeof SearchHandler !== 'undefined' ? SearchHandler : undefined
     });
 }

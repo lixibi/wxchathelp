@@ -53,7 +53,6 @@ class PWAManager {
             pushManager: 'PushManager' in window
         };
 
-        console.log('🔍 PWA功能支持情况:', features);
         return features;
     }
     
@@ -179,7 +178,7 @@ class PWAManager {
                           window.navigator.standalone === true;
         
         if (this.isInstalled) {
-            console.log('📱 应用运行在独立模式（已安装）');
+            // 应用运行在独立模式（已安装）
         }
     }
     
@@ -233,7 +232,6 @@ class PWAManager {
     async promptInstall() {
         if (!this.deferredPrompt) {
             // 安装提示通知已禁用，避免移动端弹窗遮挡输入框
-            console.log('安装提示不可用，请使用浏览器菜单安装');
             return;
         }
 
@@ -245,9 +243,9 @@ class PWAManager {
             const { outcome } = await this.deferredPrompt.userChoice;
 
             if (outcome === 'accepted') {
-                console.log('✅ 用户接受安装');
+                // 用户接受安装
             } else {
-                console.log('❌ 用户拒绝安装');
+                // 用户拒绝安装
             }
 
             // 清除提示
@@ -316,7 +314,6 @@ class PWAManager {
             await Promise.all(cacheNames.map(name => caches.delete(name)));
 
             // 缓存清理成功通知已禁用，避免移动端弹窗遮挡输入框
-            console.log('🗑️ PWA缓存已清理');
         } catch (error) {
             console.error('清理缓存失败:', error);
             // 缓存清理失败通知已禁用，避免移动端弹窗遮挡输入框
